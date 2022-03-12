@@ -4,10 +4,10 @@ const info = (...params) => {
     }
 }
   
-const error = (...params) => {
+const _error = (...params) => {
     if (process.env.NODE_ENV !== 'test') {
         console.error(...params)
     }
 }
   
-export default { info, error }
+export { info, _error }

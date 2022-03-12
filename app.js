@@ -2,22 +2,28 @@ import express from 'express'
 import mongoose from 'mongoose'
 import 'express-async-errors'
 import cors from 'cors'
-import config from './utils/config.js'
-import logger from './utils/logger.js'
-import { requestLogger, unknownEndpoint, errorHandler } from './utils/middleware.js'
+import usersRouter from './controllers/users.js'
+import loginRouter from './controllers/login.js'
+import booksRouter from './controllers/books.js'
+import shelvesRouter from './controllers/shelves.js'
+import { MONGODB_URI } from './utils/config.js'
+import { requestLogger, unknownEndpoint, errorHandler , userExtractor} from './utils/middleware.js'
 
 const app = express()
-
-mongoose.connect(config.MONGODB_URI)
-  .then(() => {
-    logger.info('connected to MongoDB')
-  })
-  .catch(error => {
-    logger.error('error connecting to MongoDB', error.message)
-  })
+await mongoose.connect(MONGODB_URI)
 
 app.use(cors())
 app.use(express.static('build'))
 app.use(express.json())
+app.use(requestLogger)
+app.use(userExtractor)
+
+app.use('/api/users', usersRouter)
+app.use('/api/login', loginRouter)
+app.use('/api/books', booksRouter)
+app.use('/api/shelves', shelvesRouter)
+
+app.use(unknownEndpoint)
+app.use(errorHandler)
 
 export default app

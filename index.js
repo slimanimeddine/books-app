@@ -1,10 +1,10 @@
 import http from 'http'
 import app from './app.js'
-import config from './utils/config.js'
-import logger from './utils/logger.js'
+import { PORT } from './utils/config.js'
+import { info } from './utils/logger.js'
 
 const server = http.createServer(app)
 
-server.listen(config.PORT, () => {
-  logger.info(`server running on ${config.PORT}`)
+server.listen(PORT, () => {
+  info(`server running on ${PORT}`)
 })

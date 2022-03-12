@@ -1,10 +1,12 @@
-import logger from './logger.js'
+import { info, _error } from './logger.js'
+import jwt from 'jsonwebtoken'
+import User from '../models/user.js'
 
 const requestLogger = (request, response, next) => {
-  logger.info('Method', request.method)
-  logger.info('Path', request.path)
-  logger.info('Body', request.body)
-  logger.info('---')
+  info('Method', request.method)
+  info('Path', request.path)
+  info('Body', request.body)
+  info('---')
   next()
 }
 
@@ -13,24 +15,24 @@ const unknownEndpoint = (request, response) => {
 }
 
 const errorHandler = (error, request, response, next) => {
-  logger.error(error.message)
+  _error(error.message)
 
   if (error.name === 'CastError') {
-    return response
+    response
         .status(400)
         .send({error: 'malformatted id'})
   } else if (error.name === 'ValidationError') {
-    return response
+    response
         .status(400)
         .json({error: error.message})
   } else if (error.name === 'JsonWebTokenError') {
-    return response
+    response
         .status(401)
         .json({
           error: 'invalid token',
         })
   } else if (error.name === 'TokenExpiredError') {
-    return response
+    response
         .status(401)
         .json({
           error: 'token expired',
@@ -40,4 +42,16 @@ const errorHandler = (error, request, response, next) => {
   next(error)
 }
 
-export { requestLogger, unknownEndpoint, errorHandler }
+const userExtractor = async (request, response, next) => {
+  const authorization = request.get('authorization')
+  if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
+    const decodedToken = jwt.verify(authorization.substring(7), process.env.SECRET)
+    if (decodedToken) {
+      request.user = await User.findById(decodedToken.id)
+    }
+  }
+
+  next()
+}
+
+export { requestLogger, unknownEndpoint, errorHandler, userExtractor }

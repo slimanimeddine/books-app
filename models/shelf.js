@@ -1,12 +1,17 @@
 import mongoose from 'mongoose'
 import mongooseUniqueValidator from 'mongoose-unique-validator'
-const { Schema, model } = mongoose
+
+const { Schema, model} = mongoose
 
 const shelfSchema = new Schema({
     name: {
         type: String,
-        unique: true,
-        required: true   
+        unique: [true,
+            "shelf's name must be unique"
+        ],
+        required: [true,
+            "name field is required"
+        ]   
     },
     books: [
         {

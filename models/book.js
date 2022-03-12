@@ -1,23 +1,34 @@
 import mongoose from 'mongoose'
 import validator from 'validator'
-const { Schema, model } = mongoose
+
+const { Schema, model} = mongoose
 
 const bookSchema = new Schema({
     details: {
         title: {
             type: String,
-            required: true
+            required: [true,
+                'title field is required'
+            ]
         },
         authors: [
             {
-                authorLastName: String,
-                authorFirstName: String        
+                authorName: {
+                    type: String,
+                    validate: [
+                        v => /^[a-z ,.'-]+$/i.test(v),
+                        'invalid name entered'
+                    ]            
+                } 
             },
         ],
         publisher: String,
         isbn: {
             type: String,
-            validate: validator.isISBN(13)
+            validate: [
+                validator.isISBN,
+                'invalid ISBN number'
+            ]
         },
         format: String,
         image: Buffer,
@@ -33,6 +44,7 @@ const bookSchema = new Schema({
         summary: String
     },
     note: {
+        shelf: String,
         pageRead: Number,
         favorite: Boolean,
         dateAdded: Date,
