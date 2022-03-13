@@ -21,10 +21,6 @@ const userSchema = new Schema({
         ],
         required: [true,
             'username field is required'
-        ],
-        validate: [
-            v => /^[A-Za-z][A-Za-z0-9_]{7,29}$/.test(v),
-            'invalid username entered'
         ]
     },
     passwordHash: {

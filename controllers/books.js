@@ -25,8 +25,19 @@ booksRouter.post('/', async (request, response) => {
     let book
     let shelf
 
+    if (!user) {
+        response
+            .status(401)
+            .json({
+                error: 'operation requires user authentication'
+            })
+    }
+
     if (request.body.note.shelf) {
-        shelf = await Shelf.findOne({name: request.body.note.shelf})
+        shelf = await Shelf.findOne({
+            name: request.body.note.shelf,
+            user
+        })
         if (shelf) {
             book = new Book({
                 ...request.body,
@@ -50,6 +61,56 @@ booksRouter.post('/', async (request, response) => {
     response
         .status(201)
         .json(savedBook)
+})
+
+booksRouter.put('/:id', async (request, response) => {
+    const user = request.user
+    let requestedBook = await Book.findOne({_id: request.params.id})
+    let requestedBooksShelf = await Shelf.findById(requestedBook.shelf)
+    let shelf
+    let book
+
+    if (!user) {
+        response
+            .status(401)
+            .json({
+                error: 'operation requires user authentication'
+            })
+    }
+
+    if (request.body.note.shelf) {
+        shelf = await Shelf.findOne({
+            name: request.body.note.shelf,
+            user
+        })
+        if (shelf && shelf !== requestedBooksShelf) {
+            book = {
+                ...request.body,
+                shelf
+            }
+
+            const updatedBook = await Book.findByIdAndUpdate(request.params.id, book, { new: true })
+            shelf.books = shelf.books.concat(updatedBook._id)
+            await shelf.save()
+            console.log(requestedBook)
+            console.log(requestedBooksShelf)
+            console.log(requestedBooksShelf.books)
+            requestedBooksShelf.books = requestedBooksShelf.books.filter(b => Number(b._id) !== Number(requestedBook._id))
+            await requestedBooksShelf.save()
+            response
+                .status(200)
+                .json(updatedBook)
+        }
+    }
+
+    book = {
+        ...request.body
+    }
+
+    const updatedBook = await Book.findByIdAndUpdate(request.params.id, book, { new: true})
+    response
+        .status(200)
+        .json(updatedBook)
 })
 
 export default booksRouter
