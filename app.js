@@ -7,7 +7,7 @@ import loginRouter from './controllers/login.js'
 import booksRouter from './controllers/books.js'
 import shelvesRouter from './controllers/shelves.js'
 import { MONGODB_URI } from './utils/config.js'
-import { requestLogger, unknownEndpoint, errorHandler , userExtractor} from './utils/middleware.js'
+import { requestLogger, unknownEndpoint, errorHandler, userExtractor } from './utils/middleware.js'
 
 const app = express()
 await mongoose.connect(MONGODB_URI)

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import mongooseUniqueValidator from 'mongoose-unique-validator'
 
-const { Schema, model} = mongoose
+const { Schema, model } = mongoose
 
 const userSchema = new Schema({
     name: {
@@ -44,6 +44,15 @@ const userSchema = new Schema({
 })
 
 userSchema.plugin(mongooseUniqueValidator)
+
+userSchema.set('toJSON', {
+    transform: (document, returnedObject) => {
+        returnedObject.id = returnedObject._id.toString()
+        delete returnedObject._id
+        delete returnedObject.passwordHash 
+        delete returnedObject.__v
+    }
+})
 
 const User = model('User', userSchema)
 

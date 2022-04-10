@@ -9,6 +9,7 @@ booksRouter.get('/', async (request, response) => {
         .find({})
         .populate('user')
         .populate('shelf')
+
     response.json(books)
 })
 
@@ -17,46 +18,48 @@ booksRouter.get('/:id', async (request, response) => {
         .findById(request.params.id)
         .populate('user')
         .populate('shelf')
+        
     response.json(book)
 })
 
 booksRouter.post('/', async (request, response) => {
+    const body = request.body
     const user = request.user
-    let book
-    let shelf
+    const shelf = body.shelf ? await Shelf.findById(body.shelf) : await Shelf.findOne({user}, {}, { sort: { 'created_at' : 1 } })
 
     if (!user) {
-        response
+        return response
             .status(401)
             .json({
                 error: 'operation requires user authentication'
             })
+    }            
+
+    const anExistingBook = await Book.findOne({name: body.name, user})
+
+    if(anExistingBook) {
+        return response
+            .status(409)
+            .json({
+                error: 'an existing book already has the same name'
+            })    
     }
 
-    if (request.body.note.shelf) {
-        shelf = await Shelf.findOne({
-            name: request.body.note.shelf,
-            user
-        })
-        if (shelf) {
-            book = new Book({
-                ...request.body,
-                shelf,
-                user
-            })        
-        }
-    } else {
-        book = new Book({
-            ...request.body,
-            user
-        })
-    }
+    const book = new Book({
+        ...body,
+        user,
+        shelf
+    })
 
     const savedBook = await book.save()
+
     user.books = user.books.concat(savedBook._id)
     await user.save()
-    shelf.books = shelf.books.concat(savedBook._id)
-    await shelf.save()
+
+    if (shelf) {
+        shelf.books = shelf.books.concat(savedBook._id)
+        await shelf.save()    
+    }
     
     response
         .status(201)
@@ -64,53 +67,66 @@ booksRouter.post('/', async (request, response) => {
 })
 
 booksRouter.put('/:id', async (request, response) => {
-    const user = request.user
-    let requestedBook = await Book.findOne({_id: request.params.id})
-    let requestedBooksShelf = await Shelf.findById(requestedBook.shelf)
-    let shelf
-    let book
+    const requestedBook = await Book.findById(request.params.id)
+    const requestedShelf = await Shelf.findById(requestedBook.shelf)
+    const { user, body } = request
+    const shelf = await Shelf.findById(body.shelf)
 
     if (!user) {
-        response
+        return response
             .status(401)
             .json({
                 error: 'operation requires user authentication'
             })
-    }
+    }            
 
-    if (request.body.note.shelf) {
-        shelf = await Shelf.findOne({
-            name: request.body.note.shelf,
-            user
-        })
-        if (shelf && shelf !== requestedBooksShelf) {
-            book = {
-                ...request.body,
-                shelf
-            }
-
-            const updatedBook = await Book.findByIdAndUpdate(request.params.id, book, { new: true })
-            shelf.books = shelf.books.concat(updatedBook._id)
-            await shelf.save()
-            console.log(requestedBook)
-            console.log(requestedBooksShelf)
-            console.log(requestedBooksShelf.books)
-            requestedBooksShelf.books = requestedBooksShelf.books.filter(b => Number(b._id) !== Number(requestedBook._id))
-            await requestedBooksShelf.save()
-            response
-                .status(200)
-                .json(updatedBook)
+    if (body.shelf) {
+        const shelfBelongsToUser = await Shelf.findById(body.shelf)
+        if (shelfBelongsToUser && shelfBelongsToUser.user.toString() !== user._id.toString()) {
+            return response
+                .status(404)
+                .json({
+                    error: 'shelf does not exist'
+                })
         }
     }
 
-    book = {
-        ...request.body
+
+    const book = {
+        ...body
     }
 
-    const updatedBook = await Book.findByIdAndUpdate(request.params.id, book, { new: true})
+    const updatedBook = await Book.findByIdAndUpdate(request.params.id, book, { new: true })
+
+    if (shelf && requestedShelf !== shelf) {
+        shelf.books = shelf.books.concat(updatedBook._id)
+        await shelf.save()
+
+        requestedShelf.books = requestedShelf.books.filter(b => b.toString() !== updatedBook._id.toString())
+        await requestedShelf.save()
+    }
+
     response
         .status(200)
         .json(updatedBook)
+})
+
+booksRouter.delete('/:id', async (request, response) => {
+    const user = request.user
+
+    if (!user) {
+        return response
+            .status(401)
+            .json({
+                error: 'operation requires user authentication'
+            })
+    }            
+
+    await Book.findByIdAndRemove(request.params.id)
+
+    response
+        .status(204)
+        .end()
 })
 
 export default booksRouter

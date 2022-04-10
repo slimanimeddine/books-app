@@ -1,14 +1,10 @@
 import mongoose from 'mongoose'
-import mongooseUniqueValidator from 'mongoose-unique-validator'
 
-const { Schema, model} = mongoose
+const { Schema, model } = mongoose
 
 const shelfSchema = new Schema({
     name: {
         type: String,
-        unique: [true,
-            "shelf's name must be unique"
-        ],
         required: [true,
             "name field is required"
         ]   
@@ -25,7 +21,13 @@ const shelfSchema = new Schema({
     }
 })
 
-shelfSchema.plugin(mongooseUniqueValidator)
+shelfSchema.set('toJSON', {
+    transform: (document, returnedObject) => {
+        returnedObject.id = returnedObject._id.toString()
+        delete returnedObject._id
+        delete returnedObject.__v
+    }
+})
 
 const Shelf = model('Shelf', shelfSchema)
 

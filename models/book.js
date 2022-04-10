@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import validator from 'validator'
 
-const { Schema, model} = mongoose
+const { Schema, model } = mongoose
 
 const bookSchema = new Schema({
     details: {
@@ -44,7 +44,6 @@ const bookSchema = new Schema({
         summary: String
     },
     note: {
-        shelf: String,
         pageRead: Number,
         favorite: Boolean,
         dateAdded: Date,
@@ -57,6 +56,14 @@ const bookSchema = new Schema({
     shelf: {
         type: Schema.Types.ObjectId,
         ref: 'Shelf'        
+    }
+})
+
+bookSchema.set('toJSON', {
+    transform: (document, returnedObject) => {
+        returnedObject.id = returnedObject._id.toString()
+        delete returnedObject._id
+        delete returnedObject.__v
     }
 })
 
