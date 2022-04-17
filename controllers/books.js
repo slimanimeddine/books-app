@@ -25,7 +25,7 @@ booksRouter.get('/:id', async (request, response) => {
 booksRouter.post('/', async (request, response) => {
     const body = request.body
     const user = request.user
-    const shelf = body.shelf ? await Shelf.findById(body.shelf) : await Shelf.findOne({user}, {}, { sort: { 'created_at' : 1 } })
+    const shelf = body.shelf ? await Shelf.findById(body.shelf) : null
 
     if (!user) {
         return response
@@ -35,13 +35,21 @@ booksRouter.post('/', async (request, response) => {
             })
     }            
 
-    const anExistingBook = await Book.findOne({name: body.name, user})
+
+    const anExistingBook = await Book.findOne(
+        {
+            details: {
+                title: body.details.title
+            },
+            user
+        }
+    )
 
     if(anExistingBook) {
         return response
             .status(409)
             .json({
-                error: 'an existing book already has the same name'
+                error: 'an existing book already has the same title'
             })    
     }
 
