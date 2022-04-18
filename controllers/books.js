@@ -35,7 +35,6 @@ booksRouter.post('/', async (request, response) => {
             })
     }            
 
-
     const anExistingBook = await Book.findOne(
         {
             details: {
@@ -106,12 +105,15 @@ booksRouter.put('/:id', async (request, response) => {
 
     const updatedBook = await Book.findByIdAndUpdate(request.params.id, book, { new: true })
 
-    if (shelf && requestedShelf !== shelf) {
+    if (shelf && requestedShelf && requestedShelf !== shelf) {
         shelf.books = shelf.books.concat(updatedBook._id)
         await shelf.save()
 
         requestedShelf.books = requestedShelf.books.filter(b => b.toString() !== updatedBook._id.toString())
         await requestedShelf.save()
+    } else if (shelf && !requestedShelf) {
+        shelf.books = shelf.books.concat(updatedBook._id)
+        await shelf.save()        
     }
 
     response

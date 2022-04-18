@@ -31,7 +31,7 @@ const bookSchema = new Schema({
             ]
         },
         format: String,
-        image: Buffer,
+        image: String,
         genre: String,
         publishedDate: Date,
         pageNumber: Number,
