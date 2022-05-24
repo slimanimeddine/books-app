@@ -13,23 +13,11 @@ const bookSchema = new Schema({
         },
         authors: [
             {
-                authorName: {
-                    type: String,
-                    validate: [
-                        v => /^[a-z ,.'-]+$/i.test(v),
-                        'invalid name entered'
-                    ]            
-                } 
+                authorName: String
             },
         ],
         publisher: String,
-        isbn: {
-            type: String,
-            validate: [
-                validator.isISBN,
-                'invalid ISBN number'
-            ]
-        },
+        isbn: String,
         format: String,
         image: String,
         genre: String,

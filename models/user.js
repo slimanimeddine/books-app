@@ -8,10 +8,6 @@ const userSchema = new Schema({
         type: String,
         required: [true, 
             'name field is required'
-        ],
-        validate: [
-            v => /^[a-z ,.'-]+$/i.test(v),
-            'invalid name entered'
         ]
     },
     username: {
@@ -39,6 +35,51 @@ const userSchema = new Schema({
         {
             type: Schema.Types.ObjectId,
             ref: 'Shelf'
+        }
+    ],
+    notifications: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Notification'
+        }
+    ],
+    askToBorrow: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Book'
+        }
+    ],
+    pendingToLend: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Book'
+        }
+    ]
+})
+
+userSchema.add({
+    friends: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    ]
+})
+
+userSchema.add({
+    requestSent: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    ]
+})
+
+userSchema.add({
+    requestReceived: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'User'
         }
     ]
 })

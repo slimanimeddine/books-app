@@ -6,6 +6,7 @@ import usersRouter from './controllers/users.js'
 import loginRouter from './controllers/login.js'
 import booksRouter from './controllers/books.js'
 import shelvesRouter from './controllers/shelves.js'
+import notificationsRouter from './controllers/notifications.js'
 import { MONGODB_URI } from './utils/config.js'
 import { requestLogger, unknownEndpoint, errorHandler, userExtractor } from './utils/middleware.js'
 
@@ -23,6 +24,7 @@ app.use('/api/users', usersRouter)
 app.use('/api/login', loginRouter)
 app.use('/api/books', booksRouter)
 app.use('/api/shelves', shelvesRouter)
+app.use('/api/notifications', notificationsRouter)
 
 app.use(unknownEndpoint)
 app.use(errorHandler)
